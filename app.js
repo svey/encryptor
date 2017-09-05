@@ -22,12 +22,12 @@ class App extends React.Component {
   }
 
   encrypt(text, date, name) {
-    console.log(text, date, name)
-    date = date.toISOString()
     var url = 'http://localhost:4000/graphql'
     var query = `query Encrypt($text: String!, $date: String!, $name: String!) {
       encrypt(text: $text, date: $date, name: $name)
     }`
+
+    date = date.toISOString()
 
     return fetch(url, {
       method: 'POST',

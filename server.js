@@ -6,21 +6,6 @@ var path = require('path')
 
 var messageCache = {};
 
-// var MessageType = new GraphQLObjectType({
-//   name: 'Message',
-//   fields: {
-//     name: { type: GraphQLString },
-//     message: { type: GraphQLString }
-//   }
-// })
-
-class Message {
-  constructor(name, message) {
-    this.name = name;
-    this.message = message;
-  }
-}
-
 var schema = buildSchema(`
   type Message {
     name: String
@@ -33,19 +18,28 @@ var schema = buildSchema(`
   }
 `);
 
+class Message {
+  constructor(name, message) {
+    this.name = name;
+    this.message = message;
+  }
+}
+
 var root = {
   encrypt: ({ text, date, name }) => {
     var encryption = CryptoJS.AES.encrypt(text, 'secret');
+    
     messageCache[encryption] = { date, name };
+    
     return encryption;
   },
+  
   decrypt: ({ text }) => {
     var { date, name } = messageCache[text];
-
     var expirationDate = date.slice(0, 10); //slice at 10 to ignore time of day
     var currentDate = new Date().toISOString().slice(0, 10); //slice at 10 to ignore time of day
     var message = CryptoJS.AES.decrypt(text, 'secret').toString(CryptoJS.enc.Utf8)
-    console.log(name, message, date)
+    
     if(currentDate <= expirationDate) {
       return new Message(name, message);
     }
