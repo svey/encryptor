@@ -1,6 +1,6 @@
 # encryptor
 
-A simple React app backed by a small GraphQL API and Express server that allows users to share AES encrypted messages via the Crypto.js library
+A simple React app backed by a GraphQL API and Express server that allows users to share AES encrypted messages via the Crypto.js library
 
 ## To use:
 1. From the Repo's local directory on your machine in Terminal or CommandPrompt run:
