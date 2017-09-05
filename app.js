@@ -21,10 +21,12 @@ class App extends React.Component {
     };
   }
 
-  encrypt(text) {
-    const url = 'http://localhost:4000/graphql'
-    const query = `query Encrypt($text: String!) {
-      encrypt(text: $text)
+  encrypt(text, date, name) {
+    console.log(text, date, name)
+    date = date.toISOString()
+    var url = 'http://localhost:4000/graphql'
+    var query = `query Encrypt($text: String!, $date: String!, $name: String!) {
+      encrypt(text: $text, date: $date, name: $name)
     }`
 
     return fetch(url, {
@@ -35,21 +37,24 @@ class App extends React.Component {
       },
       body: JSON.stringify({
         query,
-        variables: { text }
+        variables: { text, date, name }
       })
     })
     .then(res => res.json())
     .then(({ data }) => {
-      const { encrypt } = data;
+      var { encrypt } = data;
       this.setState({ ...this.state, encrypt, active: 'encrypt' })
     })
     .catch(err => console.log(err))
   }
 
   decrypt(text) {
-    const url = 'http://localhost:4000/graphql'
-    const query = `query Decrypt($text: String!) {
-      decrypt(text: $text)
+    var url = 'http://localhost:4000/graphql'
+    var query = `query Decrypt($text: String!) {
+      decrypt(text: $text) {
+        name,
+        message
+      }
     }`
 
     return fetch(url, {
@@ -65,9 +70,8 @@ class App extends React.Component {
     })
     .then(res => res.json())
     .then(({ data }) => {
-      const { decrypt } = data;
-      console.log(data);
-      this.setState({ ...this.state, message: decrypt, active: false })
+      var { message, name } = data.decrypt;
+      this.setState({ ...this.state, message, name, active: false })
     })
     .catch(err => console.log(err))
   }
@@ -77,6 +81,7 @@ class App extends React.Component {
   };
 
   render() {
+    var { active, name, message, encrypt, decrypt } = this.state;
     return (
       <Card style={{ width: '350px', padding: '10px' }}>
         <CardTitle
@@ -85,12 +90,12 @@ class App extends React.Component {
         <section>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around'}}>
           <Avatar
-            title={this.state.name}
+            title={name}
           />
           <Input
             type='text'
             label='Name *'
-            value={this.state.name}
+            value={name}
             onChange={this.handleChange.bind(this, 'name')}
             maxLength={16}
           />
@@ -98,7 +103,7 @@ class App extends React.Component {
           <Input
             type='text'
             label='Message *'
-            value={this.state.message}
+            value={message}
             onChange={this.handleChange.bind(this, 'message')}
             maxLength={120}
           />
@@ -107,25 +112,25 @@ class App extends React.Component {
             minDate={date}
             onChange={this.handleChange.bind(this, 'date')}
             sundayFirstDayOfWeek
-            value={this.state.date}
+            value={date}
           />
         </section>
         <CardActions>
-          <Button label='Encrypt' onClick={this.encrypt.bind(this, this.state.message)} />
+          <Button label='Encrypt' onClick={this.encrypt.bind(this, message, date, name)} />
           <Button label='Decrypt' onClick={this.handleChange.bind(this, 'active', 'decrypt')} />
           <Dialog
             actions={[{ label: "Close", onClick: this.handleChange.bind(this, 'active', false) }]}
-            active={this.state.active === 'encrypt'}
+            active={active === 'encrypt'}
             onEscKeyDown={this.handleChange.bind(this, 'active', false)}
             onOverlayClick={this.handleChange.bind(this, 'active', false)}
             title='De/Encrypt'
             type='large'
           >
-            <p>{this.state.encrypt}</p>
+            <p>{encrypt}</p>
           </Dialog>
           <Dialog
-            actions={[{ label: "Decrypt", onClick: this.decrypt.bind(this, this.state.decrypt) }, { label: "Close", onClick: this.handleChange.bind(this, 'active', false) }]}
-            active={this.state.active === 'decrypt'}
+            actions={[{ label: "Decrypt", onClick: this.decrypt.bind(this, decrypt) }, { label: "Close", onClick: this.handleChange.bind(this, 'active', false) }]}
+            active={active === 'decrypt'}
             onEscKeyDown={this.handleChange.bind(this, 'active', false)}
             onOverlayClick={this.handleChange.bind(this, 'active', false)}
             title='De/Encrypt'
@@ -134,7 +139,7 @@ class App extends React.Component {
             <Input
               type='text'
               label='Encryption String *'
-              value={this.state.decrypt}
+              value={decrypt}
               onChange={this.handleChange.bind(this, 'decrypt')}
             />
           </Dialog>
@@ -143,8 +148,6 @@ class App extends React.Component {
     );
   }
 }
-
-
 
 ReactDOM.render(
   <App />,
