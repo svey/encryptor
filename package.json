@@ -25,7 +25,6 @@
     "babel-preset-react": "^6.24.1",
     "babel-preset-stage-2": "^6.24.1",
     "css-loader": "^0.28.7",
-    "eslint-config-airbnb": "^15.1.0",
     "node-sass": "^4.5.3",
     "postcss": "^6.0.10",
     "postcss-cssnext": "^3.0.2",

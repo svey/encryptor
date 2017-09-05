@@ -1,12 +1,12 @@
-var { buildSchema, GraphQLObjectType, GraphQLString } = require('graphql');
-var CryptoJS = require("crypto-js");
-var express = require('express');
-var graphqlHTTP = require('express-graphql');
-var path = require('path')
+const { buildSchema } = require('graphql');
+const CryptoJS = require('crypto-js');
+const express = require('express');
+const graphqlHTTP = require('express-graphql');
+const path = require('path');
 
-var messageCache = {};
+const messageCache = {};
 
-var schema = buildSchema(`
+const schema = buildSchema(`
   type Message {
     name: String
     message: String
@@ -25,37 +25,33 @@ class Message {
   }
 }
 
-var root = {
+const root = {
   encrypt: ({ text, date, name }) => {
-    var encryption = CryptoJS.AES.encrypt(text, 'secret');
-    
+    const encryption = CryptoJS.AES.encrypt(text, 'secret');
     messageCache[encryption] = { date, name };
-    
     return encryption;
   },
-  
   decrypt: ({ text }) => {
-    var { date, name } = messageCache[text];
-    var expirationDate = date.slice(0, 10); //slice at 10 to ignore time of day
-    var currentDate = new Date().toISOString().slice(0, 10); //slice at 10 to ignore time of day
-    var message = CryptoJS.AES.decrypt(text, 'secret').toString(CryptoJS.enc.Utf8)
-    
-    if(currentDate <= expirationDate) {
+    const { date, name } = messageCache[text];
+    const expirationDate = date.slice(0, 10); //  slice at 10 to ignore time of day
+    const currentDate = new Date().toISOString().slice(0, 10); // slice at 10 to ignore time of day
+    const message = CryptoJS.AES.decrypt(text, 'secret').toString(CryptoJS.enc.Utf8);
+    if (currentDate <= expirationDate) {
       return new Message(name, message);
     }
 
-    return 'The message has either expired or the encryption was invalid.'
-  }
+    return 'The message has either expired or the encryption was invalid.';
+  },
 };
 
-var app = express();
+const app = express();
 
-app.use(express.static('static')) 
+app.use(express.static('static'));
 
-app.use('/graphql', graphqlHTTP((req, res, graphqlParams) => ({
-  schema: schema,
+app.use('/graphql', graphqlHTTP(() => ({
+  schema,
   rootValue: root,
-  graphiql: true
+  graphiql: true,
 })));
 
 app.get('/', (req, res) => {

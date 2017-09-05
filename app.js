@@ -1,104 +1,104 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Avatar from 'react-toolbox/lib/avatar';
-import {Button} from 'react-toolbox/lib/button';
-import { Card, CardMedia, CardTitle, CardText, CardActions } from 'react-toolbox/lib/card';
+import { Button } from 'react-toolbox/lib/button';
+import { Card, CardTitle, CardActions } from 'react-toolbox/lib/card';
 import DatePicker from 'react-toolbox/lib/date_picker';
 import Dialog from 'react-toolbox/lib/dialog';
 import Input from 'react-toolbox/lib/input';
 
-var date = new Date();
 
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      date,
+      date: new Date(),
       name: null,
       message: null,
       encrypt: null,
-      decrypt: null
+      decrypt: null,
     };
   }
 
-  encrypt(text, date, name) {
-    var url = 'http://localhost:4000/graphql'
-    var query = `query Encrypt($text: String!, $date: String!, $name: String!) {
+  encrypt(text, name) {
+    const url = 'http://localhost:4000/graphql';
+    const query = `query Encrypt($text: String!, $date: String!, $name: String!) {
       encrypt(text: $text, date: $date, name: $name)
-    }`
+    }`;
 
-    date = date.toISOString()
+    const expiration = this.state.date.toISOString();
 
     return fetch(url, {
       method: 'POST',
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         query,
-        variables: { text, date, name }
+        variables: { text, date: expiration, name },
+      }),
+    })
+      .then(res => res.json())
+      .then(({ data }) => {
+        const { encrypt } = data;
+
+        this.setState({ ...this.state, encrypt, active: 'encrypt' });
       })
-    })
-    .then(res => res.json())
-    .then(({ data }) => {
-      var { encrypt } = data;
-      this.setState({ ...this.state, encrypt, active: 'encrypt' })
-    })
-    .catch(err => console.log(err))
+      .catch(err => console.log(err));
   }
 
   decrypt(text) {
-    var url = 'http://localhost:4000/graphql'
-    var query = `query Decrypt($text: String!) {
+    const url = 'http://localhost:4000/graphql';
+    const query = `query Decrypt($text: String!) {
       decrypt(text: $text) {
         name,
         message
       }
-    }`
+    }`;
 
     return fetch(url, {
       method: 'POST',
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         query,
-        variables: { text }
+        variables: { text },
+      }),
+    })
+      .then(res => res.json())
+      .then(({ data }) => {
+        const { message, name } = data.decrypt;
+        this.setState({ ...this.state, message, name, active: false });
       })
-    })
-    .then(res => res.json())
-    .then(({ data }) => {
-      var { message, name } = data.decrypt;
-      this.setState({ ...this.state, message, name, active: false })
-    })
-    .catch(err => console.log(err))
+      .catch(err => console.log(err));
   }
 
   handleChange(prop, value) {
     this.setState({ ...this.state, [prop]: value });
-  };
+  }
 
   render() {
-    var { active, name, message, encrypt, decrypt } = this.state;
+    const { active, name, message, encrypt, decrypt, date } = this.state;
     return (
       <Card style={{ width: '350px', padding: '10px' }}>
         <CardTitle
           title='Encrypt'
         />
         <section>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around'}}>
-          <Avatar
-            title={name}
-          />
-          <Input
-            type='text'
-            label='Name *'
-            value={name}
-            onChange={this.handleChange.bind(this, 'name')}
-            maxLength={16}
-          />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around' }}>
+            <Avatar
+              title={name}
+            />
+            <Input
+              type='text'
+              label='Name *'
+              value={name}
+              onChange={this.handleChange.bind(this, 'name')}
+              maxLength={16}
+            />
           </div>
           <Input
             type='text'
@@ -116,10 +116,10 @@ class App extends React.Component {
           />
         </section>
         <CardActions>
-          <Button label='Encrypt' onClick={this.encrypt.bind(this, message, date, name)} />
+          <Button label='Encrypt' onClick={this.encrypt.bind(this, message, name)} />
           <Button label='Decrypt' onClick={this.handleChange.bind(this, 'active', 'decrypt')} />
           <Dialog
-            actions={[{ label: "Close", onClick: this.handleChange.bind(this, 'active', false) }]}
+            actions={[{ label: 'Close', onClick: this.handleChange.bind(this, 'active', false) }]}
             active={active === 'encrypt'}
             onEscKeyDown={this.handleChange.bind(this, 'active', false)}
             onOverlayClick={this.handleChange.bind(this, 'active', false)}
@@ -129,7 +129,7 @@ class App extends React.Component {
             <p>{encrypt}</p>
           </Dialog>
           <Dialog
-            actions={[{ label: "Decrypt", onClick: this.decrypt.bind(this, decrypt) }, { label: "Close", onClick: this.handleChange.bind(this, 'active', false) }]}
+            actions={[{ label: 'Decrypt', onClick: this.decrypt.bind(this, decrypt) }, { label: 'Close', onClick: this.handleChange.bind(this, 'active', false) }]}
             active={active === 'decrypt'}
             onEscKeyDown={this.handleChange.bind(this, 'active', false)}
             onOverlayClick={this.handleChange.bind(this, 'active', false)}
@@ -151,5 +151,5 @@ class App extends React.Component {
 
 ReactDOM.render(
   <App />,
-  document.getElementById('root')
+  document.getElementById('root'),
 );
