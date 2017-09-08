@@ -85,7 +85,7 @@ class App extends React.Component {
     return (
       <Card style={{ width: '350px', padding: '10px' }}>
         <CardTitle
-          title='Encrypt'
+          title='encryptor'
         />
         <section>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around' }}>
